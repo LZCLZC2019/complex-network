@@ -1,0 +1,163 @@
+# coding:utf-8
+# 凉凉
+# 开发时间：2021/4/22 17:08
+import math
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+import networkx as nx
+
+def draw(G, pos, measures, measure_name):
+    # for i in measures.keys():
+    #     measures[i] = measures.get(i) * 3    #Make the visualization effect more beautiful without affecting the sorting result
+    # nodes = nx.draw_networkx_nodes(G, pos, node_size=200, cmap=plt.cm.plasma,
+    #                                node_color=list(measures.values()),
+    #                                nodelist=measures.keys())
+    nodes = nx.draw_networkx_nodes(G, pos, node_size=list(measures.values()), cmap=plt.cm.plasma,
+                                   node_color=list(measures.values()),
+                                   nodelist=measures.keys())
+
+    nodes.get_label()
+    nodes.set_norm(mcolors.SymLogNorm(linthresh=0.01, linscale=1, base=10))
+    labels = nx.draw_networkx_labels(G, pos)
+    edges = nx.draw_networkx_edges(G, pos)
+    plt.title(measure_name)
+    plt.colorbar(nodes)
+    plt.axis('off')
+    plt.show()
+
+def Shole(G):
+    bridge = {int(n): list(G.neighbors(n)) for n in G.nodes()}
+    bridge1 = sorted(bridge.items(), key=lambda x: x[0], reverse=False)
+    bridge2 = dict(bridge1)
+    bridge3 = {str(n): bridge2.get(n) for n in bridge2}
+    bridge = dict(bridge3)
+    print(bridge)
+    w = []
+    shh = {}
+
+    for i in bridge.keys():
+        wi = 0
+        for j in bridge.get(i):
+            wi = wi + len(bridge.get(j)) + len(bridge.get(i))
+        w.append(wi)
+
+    for i in bridge.keys():
+        sumj = 0
+        for j in bridge.get(i):
+            sumq = 0
+            for q in bridge.get(i):
+                if q == j:
+                    continue
+                if bridge.get(q).__contains__(j):
+                    qq = (len(bridge.get(i)) + len(bridge.get(q))) * (len(bridge.get(q)) + len(bridge.get(j))) / w[int(i) - 1] / w[int(q) - 1]
+                    sumq = sumq + qq
+            jj = sumq + (len(bridge.get(i)) + len(bridge.get(j))) / w[int(i) - 1]
+            sumj = sumj + math.pow(jj, 2)
+        if sumj == 0:
+            shh[i] = 0
+        else:
+            shh[i] = 1/sumj
+    return shh
+
+def k_shelll(G, u=None):
+    _G = G.copy()
+    data = {}
+    ks = 1
+    while _G.nodes():
+        temp = []
+        ns = {n:_G.degree[n] for n in _G.nodes()}
+        kks = min(ns.values())
+        while True:
+            for k, v in ns.items():
+                if v == kks:
+                    temp.append(k)
+                    _G.remove_node(k)
+            ns = {n:_G.degree[n] for n in _G.nodes()}
+            if kks not in ns.values():
+                break
+        data[ks] = temp
+        ks += 1
+    #
+    if u or u == 0:
+        kc = 0
+        for k,v in data.items():
+            if u in v:
+                kc = k
+                break
+        return kc
+    return data
+
+
+# G = nx.read_pajek(r'C:\Users\Administrator\Desktop\data\N_911.paj')  #911 Terrorist hijackers' Network Neighborhood
+# G = nx.read_pajek(r'C:\Users\Administrator\Desktop\data\Paris_Attacks_2015.paj')  #2015 Paris Raiders Network
+G = nx.read_pajek(r'C:\Users\Administrator\Desktop\data\data1\108_SEA_2005.paj')  #2005 Southeast Asian Attack Series
+
+plt.figure(figsize=(8, 5))
+nx.draw(G, with_labels=True,font_size=18,node_color='r',node_size=500)
+plt.show()
+print(G.nodes)  # nodes
+
+# the statistical properties of the network
+print("number of nodes", G.number_of_nodes())
+print("number of edges", G.number_of_edges())
+print("density of networks", nx.density(G))
+print("average degree", (2*G.number_of_edges())/G.number_of_nodes())
+print("diameter: ", nx.diameter(G))
+print("g: " , (2*G.number_of_edges())/G.number_of_nodes()/(G.number_of_nodes()-1))
+
+print("------------------------------------------------------------------------")
+print("dgree centrality")
+deg_centrality = nx.degree_centrality(G)
+sort_orders = sorted(deg_centrality.items(), key=lambda x: x[1], reverse=True)
+for i in sort_orders:
+	print(i[0], i[1])
+
+print("------------------------------------------------------------------------")
+print("closeness centrality")
+clo_centrality = nx.closeness_centrality(G)
+sort_orders = sorted(clo_centrality.items(), key=lambda x: x[1], reverse=True)
+for i in sort_orders:
+	print(i[0], i[1])
+
+print("------------------------------------------------------------------------")
+print("betweenness centrality")
+bet_centrality = nx.betweenness_centrality_source(G)
+sort_orders = sorted(bet_centrality.items(), key=lambda x: x[1], reverse=True)
+for i in sort_orders:
+	print(i[0], i[1])
+
+print("------------------------------------------------------------------------")
+print("eigenvector centrality")
+eiv_centrality=nx.eigenvector_centrality_numpy(G)
+sort_orders = sorted(eiv_centrality.items(), key=lambda x: x[1], reverse=True)
+for i in sort_orders:
+	print(i[0], i[1])
+
+print("------------------------------------------------------------------------")
+print("sh structure hole value--------------------")
+shole = Shole(G)
+sh = {k : shole[k] for k in shole}
+sort_orders = sorted(shole.items(), key=lambda x: x[1], reverse=True)
+for i in sort_orders:
+	print(i[0], i[1])
+pos = nx.spring_layout(G, seed=1500)
+draw(G, pos,sh, 'structure hole')
+
+print("------------------------------------------------------------------------")
+print("k-shell value--------------------")
+ks = {n:k_shelll(G, n) for n in G.nodes()}
+sort_orders = sorted(ks.items(), key=lambda x: x[1], reverse=True)
+for i in sort_orders:
+	print(i[0], i[1])
+pos = nx.spring_layout(G, seed=1500)
+draw(G, pos, ks, 'K-shell')
+
+print("------------------------------------------------------------------------")
+print("Ksh K-shell mixed structure hole --------------------")
+kssh={k: v * shole[k] for k, v in ks.items() if k in shole}
+sort_orders = sorted(kssh.items(), key=lambda x: x[1], reverse=True)
+for i in sort_orders:
+	print(i[0], i[1])
+pos = nx.spring_layout(G, seed=1500)
+draw(G, pos,kssh, 'K-shell mixed structure hole')
+
