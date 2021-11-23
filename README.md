@@ -13,8 +13,8 @@ Dear reader：
     The network statistical properties of the three networks are as follows:
 
             Networks	              N	  E	  D	  g	    <k>
-     911 Terrorist Network	        62	304	5	0.1608	9.8065
-    2015 Paris Raiders Network	    21	35	4	0.1667	3.3333
-2005 Southeast Asian Attack Series	108	565	5	0.0978	10.4630
+    911 Terrorist Network	            62	304	5	0.1608	9.8065
+    2015 Paris Raiders Network	        21	35	4	0.1667	3.3333
+    2005 Southeast Asian Attack Series	108	565	5	0.0978	10.4630
 
 23/11/2021
